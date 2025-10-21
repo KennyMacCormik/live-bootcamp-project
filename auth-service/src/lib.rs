@@ -1,9 +1,9 @@
 pub mod routes;
 mod domain;
 mod service;
-pub use service::hashmap_user_store::HashmapUserStore;
-mod app_state;
-pub use app_state::AppState;
+pub use repo::hashmap_user_store::HashmapUserStore;
+mod repo;
+pub use repo::AppState;
 
 use std::error::Error;
 use tower_http::services::ServeDir;

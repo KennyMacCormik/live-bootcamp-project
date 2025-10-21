@@ -1,27 +1,28 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use crate::{AppState, domain::User, ErrorResponse, domain::data_stores::UserStoreError};
+use crate::domain::errors::UserError::{EmailParsingError, PasswordParsingError};
 
 pub async fn signup_handler(
     State(app_state): State<AppState>,
     Json(request): Json<SignupRequest>,
 ) -> impl IntoResponse {
 
-    let email:&str = &request.email;
-    if email.contains('@') == false {
-        return (StatusCode::BAD_REQUEST, Json(ErrorResponse {
-            error: "Invalid credentials".to_string(),
-        })).into_response();
-    }
-
-    let password:&str = &request.password;
-    if password.len() < 8 {
-        return (StatusCode::BAD_REQUEST, Json(ErrorResponse {
-            error: "Invalid credentials".to_string(),
-        })).into_response();
-    }
-
-    let user = User::new(request.email, request.password, request.requires_2fa);
+    let user = match User::new(request.email, request.password, request.requires_2fa) {
+        Ok(u) => u,
+        Err(e) => {
+            return match e {
+                EmailParsingError(e) => (
+                    StatusCode::BAD_REQUEST,
+                    Json(ErrorResponse { error: format!("{e:?}") }),
+                ).into_response(),
+                PasswordParsingError(e) => (
+                    StatusCode::BAD_REQUEST,
+                    Json(ErrorResponse { error: format!("{e:?}") }),
+                ).into_response(),
+            };
+        }
+    };
 
     let mut user_store = app_state.user_store.write().await;
 

@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use crate::domain::{User, data_stores::UserStoreError};
+use crate::domain::{User, data_stores::UserStoreError, Email};
 use crate::domain::data_stores::UserStore;
 
 #[derive(Default)]
 pub struct HashmapUserStore {
-    users: HashMap<String, User>,
+    users: HashMap<Email, User>,
 }
 
 #[async_trait::async_trait]
 impl UserStore for HashmapUserStore {
     async fn add_user(&mut self, user: User) -> Result<(), UserStoreError> {
-        match self.users.entry(user.get_email().to_owned()) {
+        match self.users.entry(user.get_email().clone()) {
             Entry::Occupied(_) => Err(UserStoreError::UserAlreadyExists),
             Entry::Vacant(v) => {
                 v.insert(user);
@@ -28,7 +28,7 @@ impl UserStore for HashmapUserStore {
 
     async fn validate_user(&self, email: &str, password: &str) -> Result<(), UserStoreError> {
         if let Some(user) = self.users.get(email) {
-            if user.get_password() == password {
+            if user.get_password_as_ref() == password {
                 return Ok(());
             }
 
@@ -42,8 +42,6 @@ impl UserStore for HashmapUserStore {
 // TODO: Add unit tests for your `HashmapUserStore` implementation
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     // #[tokio::test]
     // fn test_add_user() {
     //     todo!()
