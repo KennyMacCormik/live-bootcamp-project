@@ -10,8 +10,8 @@ pub struct User {
 
 impl User {
     pub fn new(email: String, password: String, requires_2fa: bool) -> Result<Self, UserError> {
-        let email = Email::parse(email).map_err(UserError::EmailParsingError)?;
-        let password = Password::parse(password).map_err(UserError::PasswordParsingError)?;
+        let email = Email::parse(email.as_ref()).map_err(UserError::EmailParsingError)?;
+        let password = Password::parse(password.as_ref()).map_err(UserError::PasswordParsingError)?;
         Ok(User {
             email,
             password,
@@ -21,6 +21,10 @@ impl User {
 
     pub fn get_email(&self) -> &Email {
         &self.email
+    }
+
+    pub fn get_password(&self) -> &Password {
+        &self.password
     }
     
     pub fn get_email_as_ref(&self) -> &str {

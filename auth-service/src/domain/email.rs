@@ -7,9 +7,9 @@ use validator::{ValidateEmail};
 pub struct Email(String);
 
 impl Email {
-    pub fn parse(email: String) -> Result<Self, EmailError> {
+    pub fn parse(email: &str) -> Result<Self, EmailError> {
         if ValidateEmail::validate_email(&email){
-            return Ok(Self(email));
+            return Ok(Self(email.to_string()));
         }
         Err(EmailError::InvalidEmail)
     }

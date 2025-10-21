@@ -1,9 +1,13 @@
-use crate::api::helpers::TestApp;
+use crate::api::helpers::{get_random_email, TestApp};
 
 impl TestApp {
-    pub async fn test_post_login(&self) -> reqwest::Response {
+    pub async fn test_post_login<Body>(&self, body: &Body) -> reqwest::Response
+    where
+        Body: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/login", &self.address))
+            .json(body)
             .send()
             .await
             .expect("Failed to execute request.")
@@ -11,10 +15,32 @@ impl TestApp {
 }
 
 #[tokio::test]
-async fn post_login_returns_200() {
+async fn should_return_422_if_malformed_credentials() {
     let app = TestApp::new().await;
 
-    let response = app.test_post_login().await;
+    let first = serde_json::json!({
+        "bad_json": "bad_json",
+    });
 
-    assert_eq!(response.status().as_u16(), 200);
+    let resp1 = app.test_post_login(&first).await;
+    let status = resp1.status();
+    assert_eq!(status, reqwest::StatusCode::UNPROCESSABLE_ENTITY, "bad json shall fail");
+
+    let resp = app.test_post_login(&serde_json::json!({})).await;
+    let status = resp1.status();
+    assert_eq!(status, reqwest::StatusCode::UNPROCESSABLE_ENTITY, "empty json shall fail");
+}
+
+#[tokio::test]
+async fn should_return_404_with_missing_user() {
+    let app = TestApp::new().await;
+
+    let missing_user = serde_json::json!({
+        "email": "a@b.com",
+        "password": "password123!",
+    });
+
+    let resp1 = app.test_post_login(&missing_user).await;
+    let status = resp1.status();
+    assert_eq!(status, reqwest::StatusCode::NOT_FOUND, "bad email shall fail");
 }

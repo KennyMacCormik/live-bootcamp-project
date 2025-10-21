@@ -1,10 +1,10 @@
 use crate::domain::errors::PasswordError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Password(String);
 
 impl Password {
-    pub fn parse(password: String) -> Result<Self, PasswordError> {
+    pub fn parse(password: &str) -> Result<Self, PasswordError> {
         // Require a minimum length of 10 characters
         if password.chars().count() < 10 {
             return Err(PasswordError::BadLength);
@@ -15,7 +15,7 @@ impl Password {
         let has_special = password.chars().any(|c| c.is_ascii_punctuation());
 
         if has_digit && has_special {
-            Ok(Self(password))
+            Ok(Self(password.to_string()))
         } else {
             Err(PasswordError::WeakPassword)
         }
