@@ -1,4 +1,5 @@
-use crate::api::helpers::{get_random_email, TestApp};
+use crate::api::helpers::{TestApp};
+const JWT_COOKIE_NAME: &str = "jwt";
 
 impl TestApp {
     pub async fn test_post_login<Body>(&self, body: &Body) -> reqwest::Response
@@ -27,7 +28,7 @@ async fn should_return_422_if_malformed_credentials() {
     assert_eq!(status, reqwest::StatusCode::UNPROCESSABLE_ENTITY, "bad json shall fail");
 
     let resp = app.test_post_login(&serde_json::json!({})).await;
-    let status = resp1.status();
+    let status = resp.status();
     assert_eq!(status, reqwest::StatusCode::UNPROCESSABLE_ENTITY, "empty json shall fail");
 }
 
@@ -85,12 +86,19 @@ async fn should_return_200_with_valid_request() {
 
     assert_eq!(response.status(), reqwest::StatusCode::CREATED);
 
-    let missing_user = serde_json::json!({
+    let login = serde_json::json!({
         "email": "a@b.com",
         "password": "password!23",
     });
 
-    let resp1 = app.test_post_login(&missing_user).await;
+    let resp1 = app.test_post_login(&login).await;
     let status = resp1.status();
     assert_eq!(status, reqwest::StatusCode::OK, "valid request shall succeed");
+
+    let auth_cookie = resp1
+        .cookies()
+        .find(|cookie| cookie.name() == JWT_COOKIE_NAME)
+        .expect("No auth cookie found");
+
+    assert!(!auth_cookie.value().is_empty());
 }

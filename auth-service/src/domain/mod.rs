@@ -5,6 +5,7 @@ pub mod email;
 mod email_test;
 pub mod password;
 mod password_test;
+pub mod constants;
 
 pub use self::user::User;
 pub use self::email::Email;

@@ -3,6 +3,8 @@ mod domain;
 mod service;
 pub use repo::hashmap_user_store::HashmapUserStore;
 mod repo;
+mod auth;
+
 pub use repo::AppState;
 
 use std::error::Error;

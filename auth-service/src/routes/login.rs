@@ -2,6 +2,8 @@ use crate::domain::{Email, Password, data_stores::UserStoreError, errors::Passwo
 use axum::{extract::State, http::StatusCode, Json, response::IntoResponse};
 use crate::{AppState, ErrorResponse};
 use serde::{Deserialize, Serialize};
+use crate::auth::auth::generate_auth_cookie;
+use axum_extra::extract::CookieJar;
 
 const BAD_EMAIL: &str = "malformed email";
 const BAD_PASSWORD: &str = "password must be at least 10 characters";
@@ -20,26 +22,39 @@ pub struct SignupResponse {
 
 pub async fn login_handler(
     State(app_state): State<AppState>,
+    jar: CookieJar,
     Json(request): Json<LoginRequest>,
-) -> impl IntoResponse {
+) -> (CookieJar, impl IntoResponse) {
     let email = match get_email(&request.email){
         Ok(e) => e,
-        Err(resp) => return resp,
+        Err(resp) => return (jar, resp),
     };
 
     let password = match get_password(&request.password){
         Ok(e) => e,
-        Err(resp) => return resp,
+        Err(resp) => return (jar, resp),
     };
 
     let user_store = app_state.user_store.read().await;
 
     match user_store.validate_user(&email, &password).await {
-        Ok(_) =>StatusCode::OK.into_response(),
+        Ok(_) => {
+            let auth_cookie = match generate_auth_cookie(&email){
+                Ok(c) => c,
+                Err(_) => return (jar,(
+                    StatusCode::BAD_REQUEST,
+                    Json(ErrorResponse { error: BAD_EMAIL.to_string() }),
+                ).into_response()),
+            };
+
+            let updated_jar = jar.add(auth_cookie);
+
+            (updated_jar, StatusCode::OK.into_response())
+        },
         Err(err) => match err{
-            UserStoreError::InvalidCredentials => StatusCode::UNAUTHORIZED.into_response(),
-            UserStoreError::UserNotFound => StatusCode::NOT_FOUND.into_response(),
-            _ => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            UserStoreError::InvalidCredentials => (jar, StatusCode::UNAUTHORIZED.into_response()),
+            UserStoreError::UserNotFound => (jar, StatusCode::NOT_FOUND.into_response()),
+            _ => (jar, StatusCode::INTERNAL_SERVER_ERROR.into_response()),
         },
     }
 }
