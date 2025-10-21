@@ -1,0 +1,29 @@
+# Generic Rust .gitignore
+
+# Cargo build artifacts (match at any depth)
+target/
+
+# rustfmt backup files
+**/*.rs.bk
+
+# Profiling / coverage artifacts
+*.profraw
+*.profdata
+coverage/
+cov/
+
+# Logs
+*.log
+
+# Environment files (adjust if you need to commit specific env templates)
+.env
+.env.*
+
+# OS-specific cruft
+.DS_Store
+Thumbs.db
+
+# IDE/editor settings
+.idea/
+.vscode/
+*.iml
