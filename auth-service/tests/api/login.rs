@@ -44,3 +44,53 @@ async fn should_return_404_with_missing_user() {
     let status = resp1.status();
     assert_eq!(status, reqwest::StatusCode::NOT_FOUND, "bad email shall fail");
 }
+
+#[tokio::test]
+async fn should_return_401_with_existing_user_and_bad_password() {
+    let app = TestApp::new().await;
+
+    let ok_case = serde_json::json!({
+            "email": "a@b.com",
+            "password": "password!23",
+            "requires2FA": true
+        }
+    );
+
+    let response = app.test_post_signup(&ok_case).await;
+
+    assert_eq!(response.status(), reqwest::StatusCode::CREATED);
+
+    let missing_user = serde_json::json!({
+        "email": "a@b.com",
+        "password": "password!23!",
+    });
+
+    let resp1 = app.test_post_login(&missing_user).await;
+    let status = resp1.status();
+    assert_eq!(status, reqwest::StatusCode::UNAUTHORIZED, "bad password shall fail");
+}
+
+#[tokio::test]
+async fn should_return_200_with_valid_request() {
+    let app = TestApp::new().await;
+
+    let ok_case = serde_json::json!({
+            "email": "a@b.com",
+            "password": "password!23",
+            "requires2FA": true
+        }
+    );
+
+    let response = app.test_post_signup(&ok_case).await;
+
+    assert_eq!(response.status(), reqwest::StatusCode::CREATED);
+
+    let missing_user = serde_json::json!({
+        "email": "a@b.com",
+        "password": "password!23",
+    });
+
+    let resp1 = app.test_post_login(&missing_user).await;
+    let status = resp1.status();
+    assert_eq!(status, reqwest::StatusCode::OK, "valid request shall succeed");
+}
