@@ -13,10 +13,11 @@ validator = { version = "0.20.0" }
 async-trait = "0.1.78"
 axum = "0.7.4"
 tokio = { version = "1.36", features = ["full"] }
-tower-http = { version = "0.5.0", features = ["fs"] }
+tower-http = { version = "0.5.0", features = ["fs", "cors"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 uuid = { version = "1.7.0", features = ["v4", "serde"] }
+axum-core = "0.4.5"
 
 [dev-dependencies]
 reqwest = { version = "0.11.26", default-features = false, features = ["json", "cookies"] }
