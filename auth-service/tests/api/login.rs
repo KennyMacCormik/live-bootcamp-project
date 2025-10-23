@@ -23,13 +23,19 @@ async fn should_return_422_if_malformed_credentials() {
         "bad_json": "bad_json",
     });
 
-    let resp1 = app.test_post_login(&first).await;
-    let status = resp1.status();
-    assert_eq!(status, reqwest::StatusCode::UNPROCESSABLE_ENTITY, "bad json shall fail");
+    let resp = app.test_post_login(&first).await;
+    assert_eq!(
+        resp.status(),
+        reqwest::StatusCode::UNPROCESSABLE_ENTITY,
+        "bad json shall fail",
+    );
 
     let resp = app.test_post_login(&serde_json::json!({})).await;
-    let status = resp.status();
-    assert_eq!(status, reqwest::StatusCode::UNPROCESSABLE_ENTITY, "empty json shall fail");
+    assert_eq!(
+        resp.status(),
+        reqwest::StatusCode::UNPROCESSABLE_ENTITY,
+        "empty json shall fail",
+    );
 }
 
 #[tokio::test]
