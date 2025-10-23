@@ -2,7 +2,7 @@ use uuid::Uuid;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use reqwest::cookie::Jar;
-use auth_service::{AppState, HashmapUserStore, Application};
+use auth_service::{AppState, HashmapUserStore, Application, TokenStore};
 
 pub struct TestApp {
     pub address: String,
@@ -13,7 +13,8 @@ pub struct TestApp {
 impl TestApp {
     pub async fn new() -> Self {
         let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
-        let app_state = AppState::new(user_store);
+        let banned_token_store = Arc::new(TokenStore::default());
+        let app_state = AppState::new(user_store, banned_token_store);
 
         let app = Application::build(app_state, "127.0.0.1:0")
             .await

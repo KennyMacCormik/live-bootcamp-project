@@ -6,6 +6,7 @@ mod repo;
 mod auth;
 
 pub use repo::AppState;
+pub use repo::token_store::TokenStore;
 
 use std::error::Error;
 use tower_http::services::ServeDir;

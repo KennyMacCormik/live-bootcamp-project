@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use auth_service::{AppState, HashmapUserStore, Application};
+use auth_service::{AppState, HashmapUserStore, Application, TokenStore};
 
 #[tokio::main]
 async fn main() {
@@ -9,7 +9,11 @@ async fn main() {
             HashmapUserStore::default()
         )
     );
-    let app_state = AppState::new(user_store);
+    let banned_token_store = Arc::new(
+        TokenStore::default()
+    );
+
+    let app_state = AppState::new(user_store, banned_token_store);
 
     let app = Application::build(app_state,"0.0.0.0:3000")
         .await
