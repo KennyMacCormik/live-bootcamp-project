@@ -7,7 +7,7 @@ use crate::domain::errors::EmailError;
 fn valid_email_test() {
     let orig = String::from("q@b.com");
 
-    let res = Email::parse(orig.clone());
+    let res = Email::parse(orig.as_ref());
     assert!(res.is_ok(), "expected valid email, got: {:?}", res);
 
     if let Ok(email) = res {
@@ -17,6 +17,6 @@ fn valid_email_test() {
 
 #[test]
 fn invalid_email_test() {
-    let res = Email::parse("not-an-email".to_string());
+    let res = Email::parse("not-an-email".as_ref());
     assert!(matches!(res, Err(EmailError::InvalidEmail)), "expected InvalidEmail, got: {:?}", res);
 }

@@ -1,6 +1,7 @@
+use std::cmp::PartialEq;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use crate::domain::{User, data_stores::UserStoreError, Email};
+use crate::domain::{User, data_stores::UserStoreError, Email, Password};
 use crate::domain::data_stores::UserStore;
 
 #[derive(Default)]
@@ -26,9 +27,9 @@ impl UserStore for HashmapUserStore {
     // `User` object or a `UserStoreError`.
     // Return `UserStoreError::UserNotFound` if the user can not be found.
 
-    async fn validate_user(&self, email: &str, password: &str) -> Result<(), UserStoreError> {
+    async fn validate_user(&self, email: &Email, password: &Password) -> Result<(), UserStoreError> {
         if let Some(user) = self.users.get(email) {
-            if user.get_password_as_ref() == password {
+            if user.get_password() == password {
                 return Ok(());
             }
 
